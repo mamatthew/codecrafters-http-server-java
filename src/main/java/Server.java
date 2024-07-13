@@ -50,7 +50,7 @@ public class Server {
         if (resource.equals("/")) {
             httpResponse = "HTTP/1.1 200 OK\r\n\r\n";
         } else {
-            httpResponse = "HTTP/1.1 404 Not Found\\r\\n\\r\\n";
+            httpResponse = "HTTP/1.1 404 Not Found\r\n\r\n";
         }
 
         // Send the response
