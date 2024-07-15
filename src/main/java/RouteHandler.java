@@ -21,7 +21,7 @@ public class RouteHandler {
     private static void handleEcho(Matcher matcher, PrintWriter out) {
         String echoPath = matcher.group(1);
         // Send the http response with the echoPath as the body of the response
-        out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 3\r\n\r\n" + echoPath);
+        out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n\r\n" + echoPath);
         out.flush();
     }
 
