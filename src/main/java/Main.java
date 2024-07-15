@@ -16,7 +16,7 @@ public class Main {
        // ensures that we don't run into 'Address already in use' errors
        serverSocket.setReuseAddress(true);
 
-       Server server = new Server(serverSocket);
+       HTTPServer server = new HTTPServer(serverSocket);
        server.start();
 
      } catch (IOException e) {

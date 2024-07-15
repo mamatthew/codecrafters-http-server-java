@@ -6,13 +6,18 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class Server {
+public class HTTPServer {
 
     private final int port;
     private final ServerSocket serverSocket;
+    private static final Map<Pattern, Map<String, BiConsumer<Matcher, PrintWriter>>> routes = RouteHandler.getRoutes();
 
-    public Server(ServerSocket serverSocket) {
+    public HTTPServer(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
         this.port = serverSocket.getLocalPort();
     }
@@ -44,21 +49,36 @@ public class Server {
         }
         // parse the first line of the request to find the resource requested
         String[] requestLine = request.get(0).split(" ");
+        String method = requestLine[0];
         String resource = requestLine[1];
 
-        String httpResponse;
-        if (resource.equals("/")) {
-            httpResponse = "HTTP/1.1 200 OK\r\n\r\n";
-        } else {
-            httpResponse = "HTTP/1.1 404 Not Found\r\n\r\n";
-        }
-
-        // Send the response
-        out.print(httpResponse);
-        out.flush();
+        // Check if the resource is in the routes
+        routeRequest(method, resource, out);
 
         // Close streams
         in.close();
         out.close();
+    }
+
+    private static void routeRequest(String method, String path, PrintWriter out) {
+        for (Map.Entry<Pattern, Map<String, BiConsumer<Matcher, PrintWriter>>> entry : routes.entrySet()) {
+            Matcher matcher = entry.getKey().matcher(path);
+            if (matcher.matches()) {
+                Map<String, BiConsumer<Matcher, PrintWriter>> methodRoutes = entry.getValue();
+                if (methodRoutes != null) {
+                    methodRoutes.getOrDefault(method, HTTPServer::handleNotFound).accept(matcher, out);
+                } else {
+                    handleNotFound(null, out);
+                }
+                return;
+            }
+        }
+        handleNotFound(null, out);
+    }
+
+
+    private static void handleNotFound(Matcher matcher, PrintWriter printWriter) {
+        printWriter.print("HTTP/1.1 404 Not Found\r\n\r\n");
+        printWriter.flush();
     }
 }
