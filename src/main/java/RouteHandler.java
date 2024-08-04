@@ -3,7 +3,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RouteHandler {
@@ -37,9 +36,8 @@ public class RouteHandler {
     }
 
     private static void handleEcho(List<String> request, PrintWriter out) {
-        // Get the echo path from the request
-        Matcher matcher = Pattern.compile("^/echo/(.+)$").matcher(request.get(1));
-        String echoPath = matcher.group(0);
+        // Get the string that occurs after /echo/ in the request path
+        String echoPath = request.get(0).split(" ")[1].substring(6);
         // Send the http response with the echoPath as the body of the response
         out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n\r\n" + echoPath);
         out.flush();
