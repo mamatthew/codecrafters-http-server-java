@@ -15,7 +15,7 @@ public class HTTPServer {
 
     private final int port;
     private final ServerSocket serverSocket;
-    private static final Map<Pattern, Map<String, BiConsumer<Matcher, PrintWriter>>> routes = RouteHandler.getRoutes();
+    private static final Map<Pattern, Map<String, BiConsumer<List<String>, PrintWriter>>> routes = RouteHandler.getRoutes();
 
     public HTTPServer(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
@@ -47,26 +47,26 @@ public class HTTPServer {
             request.add(line);
             System.out.println(line);
         }
-        // parse the first line of the request to find the resource requested
-        String[] requestLine = request.get(0).split(" ");
-        String method = requestLine[0];
-        String resource = requestLine[1];
+
 
         // Check if the resource is in the routes
-        routeRequest(method, resource, out);
-
+        routeRequest(request, out);
         // Close streams
         in.close();
         out.close();
     }
 
-    private static void routeRequest(String method, String path, PrintWriter out) {
-        for (Map.Entry<Pattern, Map<String, BiConsumer<Matcher, PrintWriter>>> entry : routes.entrySet()) {
-            Matcher matcher = entry.getKey().matcher(path);
+    private static void routeRequest(List<String> request, PrintWriter out) {
+        // parse the first line of the request to find the resource requested
+        String[] requestLine = request.get(0).split(" ");
+        String method = requestLine[0];
+        String resource = requestLine[1];
+        for (Map.Entry<Pattern, Map<String, BiConsumer<List<String>, PrintWriter>>> entry : routes.entrySet()) {
+            Matcher matcher = entry.getKey().matcher(resource);
             if (matcher.matches()) {
-                Map<String, BiConsumer<Matcher, PrintWriter>> methodRoutes = entry.getValue();
+                Map<String, BiConsumer<List<String>, PrintWriter>> methodRoutes = entry.getValue();
                 if (methodRoutes != null) {
-                    methodRoutes.getOrDefault(method, HTTPServer::handleNotFound).accept(matcher, out);
+                    methodRoutes.getOrDefault(method, HTTPServer::handleNotFound).accept(request, out);
                 } else {
                     handleNotFound(null, out);
                 }
@@ -77,7 +77,7 @@ public class HTTPServer {
     }
 
 
-    private static void handleNotFound(Matcher matcher, PrintWriter printWriter) {
+    private static void handleNotFound(List<String> request, PrintWriter printWriter) {
         printWriter.print("HTTP/1.1 404 Not Found\r\n\r\n");
         printWriter.flush();
     }
