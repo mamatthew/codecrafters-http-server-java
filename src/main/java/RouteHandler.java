@@ -16,7 +16,6 @@ public class RouteHandler {
         
         routes.computeIfAbsent(echoPattern, k -> new HashMap<>()).put("GET", RouteHandler::handleEcho);
 
-        // write a pattern for the /user-agent path
         Pattern userAgentPattern = Pattern.compile("/user-agent");
 
         routes.computeIfAbsent(userAgentPattern, k -> new HashMap<>()).put("GET", RouteHandler::handleUserAgent);
@@ -30,8 +29,6 @@ public class RouteHandler {
 
     private static void handleFile(List<String> strings, PrintWriter printWriter) {
         String path = strings.get(0).split(" ")[1].substring(6);
-        // read content from the file at the path
-        System.out.println("Path: " + path);
         try {
             String content = FileUtil.readFile(path);
             printWriter.print("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: " + content.length() + "\r\n\r\n" + content);
@@ -42,7 +39,6 @@ public class RouteHandler {
     }
 
     private static void handleUserAgent(List<String> request, PrintWriter out) {
-        // Get the user agent header from the request
         String userAgent = request.stream()
                 .filter(line -> line.startsWith("User-Agent"))
                 .findFirst()
@@ -53,9 +49,7 @@ public class RouteHandler {
     }
 
     private static void handleEcho(List<String> request, PrintWriter out) {
-        // Get the string that occurs after /echo/ in the request path
         String echoPath = request.get(0).split(" ")[1].substring(6);
-        // Send the http response with the echoPath as the body of the response
         out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n\r\n" + echoPath);
         out.flush();
     }

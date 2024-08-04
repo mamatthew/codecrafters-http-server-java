@@ -21,8 +21,6 @@ public class FileUtil {
     }
 
     public static void setDirectoryPath(String path) {
-        // Implement the method to set the directory path
         directoryPath = path;
-        System.out.println("Directory path set to: " + directoryPath);
     }
 }

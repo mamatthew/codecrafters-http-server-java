@@ -6,12 +6,8 @@ public class Main {
   public final static int PORT = 4221;
 
   public static void main(String[] args) {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    System.out.println("Logs from your program will appear here!");
 
-    // check for --directory flage in the args
     if (args.length > 0 && args[0].equals("--directory")) {
-        // check if the directory path is provided
         if (args.length > 1) {
             FileUtil.setDirectoryPath(args[1]);
         } else {

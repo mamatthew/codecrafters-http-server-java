@@ -28,7 +28,6 @@ public class ClientHandler implements Runnable {
             String line;
             while ((line = in.readLine()) != null && !line.isEmpty()) {
                 request.add(line);
-                System.out.println(line);
             }
 
             // Check if the resource is in the routes
