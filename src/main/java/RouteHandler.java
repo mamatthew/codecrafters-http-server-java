@@ -1,13 +1,12 @@
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 public class RouteHandler {
-    public static Map<Pattern, Map<String, BiConsumer<List<String>, PrintWriter>>> getRoutes() {
-        Map<Pattern, Map<String, BiConsumer<List<String>, PrintWriter>>> routes = new HashMap();
+    public static Map<Pattern, Map<String, BiConsumer<HttpRequest, PrintWriter>>> getRoutes() {
+        Map<Pattern, Map<String, BiConsumer<HttpRequest, PrintWriter>>> routes = new HashMap();
         Pattern rootPattern = Pattern.compile("/");
         
         routes.computeIfAbsent(rootPattern, k -> new HashMap<>()).put("GET", RouteHandler::handleRoot);
@@ -22,13 +21,16 @@ public class RouteHandler {
 
         Pattern filePattern = Pattern.compile("/files/(.+)");
 
-        routes.computeIfAbsent(filePattern, k -> new HashMap<>()).put("GET", RouteHandler::handleFile);
+        routes.computeIfAbsent(filePattern, k -> new HashMap<>()).put("GET", RouteHandler::handleGetFile);
+
+        routes.computeIfAbsent(filePattern, k -> new HashMap<>()).put("POST", RouteHandler::handlePostFile);
 
         return routes;
     }
 
-    private static void handleFile(List<String> strings, PrintWriter printWriter) {
-        String path = strings.get(0).split(" ")[1].substring(6);
+    private static void handleGetFile(HttpRequest request, PrintWriter printWriter) {
+        String path = request.path.substring(7);
+        System.out.println("Path: " + path);
         try {
             String content = FileUtil.readFile(path);
             printWriter.print("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: " + content.length() + "\r\n\r\n" + content);
@@ -38,24 +40,39 @@ public class RouteHandler {
         printWriter.flush();
     }
 
-    private static void handleUserAgent(List<String> request, PrintWriter out) {
-        String userAgent = request.stream()
-                .filter(line -> line.startsWith("User-Agent"))
-                .findFirst()
-                .map(line -> line.split(": ")[1])
-                .orElse("Unknown");
+    private static void handlePostFile(HttpRequest request, PrintWriter printWriter) {
+        String path = request.path.substring(7);
+        // write code to get the content from the request body
+        // and write it to the file
+        char[] content = request.body;
+
+        // Read the request body
+
+        try {
+            FileUtil.writeFile(path, content);
+            printWriter.print("HTTP/1.1 201 Created\r\n\r\n");
+        } catch (Exception e) {
+            printWriter.print("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+        }
+
+
+
+    }
+
+    private static void handleUserAgent(HttpRequest request, PrintWriter out) {
+        String userAgent = request.headers.get("User-Agent");
         out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + userAgent.length() + "\r\n\r\n" + userAgent);
         out.flush();
     }
 
-    private static void handleEcho(List<String> request, PrintWriter out) {
-        String echoPath = request.get(0).split(" ")[1].substring(6);
+    private static void handleEcho(HttpRequest request, PrintWriter out) {
+        String echoPath = request.path.substring(6);
         out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n\r\n" + echoPath);
         out.flush();
     }
 
 
-    private static void handleRoot(List<String> request, PrintWriter out) {
+    private static void handleRoot(HttpRequest request, PrintWriter out) {
         out.print("HTTP/1.1 200 OK\r\n\r\n");
         out.flush();
     }

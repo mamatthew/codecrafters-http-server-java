@@ -2,7 +2,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,7 +30,7 @@ public class HTTPServer {
         }
     }
 
-    public static void handleNotFound(List<String> request, PrintWriter printWriter) {
+    public static void handleNotFound(HttpRequest request, PrintWriter printWriter) {
         printWriter.print("HTTP/1.1 404 Not Found\r\n\r\n");
         printWriter.flush();
     }
