@@ -29,9 +29,6 @@ public class ClientHandler implements Runnable {
         request.path = requestParts[1];
         request.version = requestParts[2];
 
-        // print the request line
-        System.out.println("Requestline: " + requestLine);
-
         // Read headers
         String headerLine;
         while (!(headerLine = reader.readLine()).isEmpty()) {
@@ -40,18 +37,14 @@ public class ClientHandler implements Runnable {
                 request.headers.put(headerParts[0], headerParts[1]);
         }
 
-        // print the headers
-        System.out.println("Headers: " + request.headers);
+        if (!request.headers.containsKey("Content-Length"))
+            return request;
 
         int contentLength = Integer.parseInt(request.headers.get("Content-Length"));
-        System.out.println("Content-Length: " + contentLength);
         char[] content = new char[contentLength];
         reader.read(content, 0, contentLength);
-        System.out.println("Read content");
         request.body = content;
 
-        // print the body
-        System.out.println("Body: " + new String(content));
         return request;
     }
 
@@ -81,7 +74,6 @@ public class ClientHandler implements Runnable {
 
     private static void routeRequest(HttpRequest request, PrintWriter out) {
         // parse the first line of the request to find the resource requested
-        System.out.println("Routing request");
         String method = request.method;
         String resource = request.path;
         for (Map.Entry<Pattern, Map<String, BiConsumer<HttpRequest, PrintWriter>>> entry : routes.entrySet()) {
@@ -89,7 +81,6 @@ public class ClientHandler implements Runnable {
             if (matcher.matches()) {
                 Map<String, BiConsumer<HttpRequest, PrintWriter>> methodRoutes = entry.getValue();
                 if (methodRoutes != null) {
-                    System.out.println("routing to " + resource + " with method " + method);
                     methodRoutes.getOrDefault(method, HTTPServer::handleNotFound).accept(request, out);
                 } else {
                     HTTPServer.handleNotFound(null, out);
