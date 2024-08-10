@@ -11,4 +11,12 @@ public class HttpRequest {
     public HttpRequest() {
         headers = new HashMap<>();
     }
+
+    public HttpRequest(String method, String path, String version, Map<String, String> headers, char[] body) {
+        this.method = method;
+        this.path = path;
+        this.version = version;
+        this.headers = headers;
+        this.body = body;
+    }
 }

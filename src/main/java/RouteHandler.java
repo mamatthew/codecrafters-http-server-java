@@ -46,8 +46,6 @@ public class RouteHandler {
         // and write it to the file
         char[] content = request.body;
 
-        // Read the request body
-
         try {
             FileUtil.writeFile(path, content);
             printWriter.print("HTTP/1.1 201 Created\r\n\r\n");
@@ -66,8 +64,20 @@ public class RouteHandler {
     }
 
     private static void handleEcho(HttpRequest request, PrintWriter out) {
+        System.out.println("Echoing");
         String echoPath = request.path.substring(6);
-        out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n\r\n" + echoPath);
+        String encoding = "";
+
+        if (request.headers.get("Accept-Encoding").equals("gzip")) {
+            encoding = "Content-Encoding: gzip";
+        }
+        if (encoding.length() != 0) {
+            System.out.println("Encoding: " + encoding);
+            out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n" + encoding + "\r\n\r\n" + echoPath);
+        } else {
+            System.out.println("No encoding");
+            out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n\r\n" + echoPath);
+        }
         out.flush();
     }
 
