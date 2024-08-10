@@ -8,11 +8,11 @@ public class RouteHandler {
     public static Map<Pattern, Map<String, BiConsumer<HttpRequest, PrintWriter>>> getRoutes() {
         Map<Pattern, Map<String, BiConsumer<HttpRequest, PrintWriter>>> routes = new HashMap();
         Pattern rootPattern = Pattern.compile("/");
-        
+
         routes.computeIfAbsent(rootPattern, k -> new HashMap<>()).put("GET", RouteHandler::handleRoot);
 
         Pattern echoPattern = Pattern.compile("^/echo/(.+)$");
-        
+
         routes.computeIfAbsent(echoPattern, k -> new HashMap<>()).put("GET", RouteHandler::handleEcho);
 
         Pattern userAgentPattern = Pattern.compile("/user-agent");
@@ -64,18 +64,17 @@ public class RouteHandler {
     }
 
     private static void handleEcho(HttpRequest request, PrintWriter out) {
-        System.out.println("Echoing");
         String echoPath = request.path.substring(6);
         String encoding = "";
 
-        if (request.headers.get("Accept-Encoding").equals("gzip")) {
+        String acceptEncoding = request.headers.get("Accept-Encoding");
+        if (acceptEncoding != null && acceptEncoding.contains("gzip")){
             encoding = "Content-Encoding: gzip";
         }
-        if (encoding.length() != 0) {
-            System.out.println("Encoding: " + encoding);
+
+        if (encoding != "") {
             out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n" + encoding + "\r\n\r\n" + echoPath);
         } else {
-            System.out.println("No encoding");
             out.print("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + echoPath.length() + "\r\n\r\n" + echoPath);
         }
         out.flush();
