@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,7 +8,7 @@ import java.util.regex.Pattern;
 
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
-    private static final Map<Pattern, Map<String, BiConsumer<HttpRequest, PrintWriter>>> routes = new ConcurrentHashMap<>(RouteHandler.getRoutes());
+    private static final Map<Pattern, Map<String, BiConsumer<HttpRequest, OutputStream>>> routes = new ConcurrentHashMap<>(RouteHandler.getRoutes());
 
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -51,14 +48,13 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+             OutputStream out = clientSocket.getOutputStream();) {
 
 
             HttpRequest request = parseRequest(in);
 
             if (request == null) {
-                out.print("HTTP/1.1 400 Bad Request\r\n\r\n");
-                out.flush();
+                out.write("HTTP/1.1 400 Bad Request\r\n\r\n".getBytes("UTF-8"));
                 return;
             }
 
@@ -72,14 +68,14 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private static void routeRequest(HttpRequest request, PrintWriter out) {
+    private static void routeRequest(HttpRequest request, OutputStream out) {
         // parse the first line of the request to find the resource requested
         String method = request.method;
         String resource = request.path;
-        for (Map.Entry<Pattern, Map<String, BiConsumer<HttpRequest, PrintWriter>>> entry : routes.entrySet()) {
+        for (Map.Entry<Pattern, Map<String, BiConsumer<HttpRequest, OutputStream>>> entry : routes.entrySet()) {
             Matcher matcher = entry.getKey().matcher(resource);
             if (matcher.matches()) {
-                Map<String, BiConsumer<HttpRequest, PrintWriter>> methodRoutes = entry.getValue();
+                Map<String, BiConsumer<HttpRequest, OutputStream>> methodRoutes = entry.getValue();
                 if (methodRoutes != null) {
                     methodRoutes.getOrDefault(method, HTTPServer::handleNotFound).accept(request, out);
                 } else {

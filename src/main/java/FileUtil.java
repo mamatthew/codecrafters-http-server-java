@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.zip.GZIPOutputStream;
 
 public class FileUtil {
 
@@ -54,7 +55,38 @@ public class FileUtil {
 
         }
     }
+
     public static void setDirectoryPath(String path) {
         directoryPath = path;
     }
+
+    public static byte[] compress(String echoPath) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        GZIPOutputStream gzipOutputStream = null;
+        try {
+            gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream);
+            gzipOutputStream.write(echoPath.getBytes("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (gzipOutputStream != null) {
+                try {
+                    gzipOutputStream.close();  // This ensures that all data is properly flushed and the stream is closed.
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    public static String convertStringToHex(String str) {
+        char[] chars = str.toCharArray();
+        StringBuilder hex = new StringBuilder();
+        for (char ch : chars) {
+            hex.append(Integer.toHexString((int) ch));
+        }
+        return hex.toString();
+    }
+
 }
